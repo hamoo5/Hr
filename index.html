@@ -90,7 +90,7 @@ function adminView(){
 
   <div class="c"><h3>إضافة موظف</h3>
   <input id="ec" placeholder="كود الموظف (EMP01)"><input id="en" placeholder="الاسم بالكامل">
-  <input id="es" type="number" placeholder="المرتب الأساسي"><input id="eu" placeholder="User ID من Authentication (اختياري)">
+  <input id="es" type="number" placeholder="المرتب الأساسي">
   <select id="er"><option value="employee">موظف</option><option value="cashier">كاشير</option><option value="supervisor">مشرف</option></select>
   <button onclick="addEmp()">إضافة</button></div>
 
@@ -125,18 +125,20 @@ async function openShift(){
 async function loadEmps(){
   const{data,error}=await sb.from('employees').select('id,employee_code,full_name,user_id').eq('company_id',M.company_id).order('created_at');
   if(error)return toast(error.message,0);
-  $('emps').innerHTML=data.length?data.map(e=>`<div class="row" style="flex-wrap:wrap"><div><b>${esc(e.full_name)}</b> <span class="mut">(${esc(e.employee_code)})</span></div>${e.user_id?'<span class="mut">✅ مربوط بحساب</span>':`<div style="width:100%"><input id="u${e.id}" placeholder="الصق User ID هنا"><button class="s" style="margin:4px 0" onclick="linkEmp('${e.id}')">ربط الحساب</button></div>`}</div>`).join(''):'<span class="mut">لا يوجد موظفين بعد</span>';
+  $('emps').innerHTML=data.length?data.map(e=>`<div class="row" style="flex-wrap:wrap"><div><b>${esc(e.full_name)}</b> <span class="mut">(${esc(e.employee_code)})</span></div>${e.user_id?`<span class="mut">اسم الدخول: <b dir="ltr">${esc((e.employee_code+'-'+M.company_id.slice(0,6)).toLowerCase())}</b></span>`:`<div style="width:100%"><input id="u${e.id}" placeholder="اكتب باسورد للموظف (6 حروف أو أكتر)"><button class="s" style="margin:4px 0" onclick="mkLogin('${e.id}')">إنشاء حساب دخول</button></div>`}</div>`).join(''):'<span class="mut">لا يوجد موظفين بعد</span>';
 }
-async function linkEmp(id){
-  const u=$('u'+id).value.trim();
-  if(!u)return toast('الصق الـ User ID أولاً',0);
-  if(await rpc('link_employee_user',{p_employee_id:id,p_user_id:u,p_role:'employee'})){toast('تم الربط');loadEmps()}
+async function mkLogin(id){
+  const pw=$('u'+id).value;
+  if(pw.length<6)return toast('الباسورد 6 حروف على الأقل',0);
+  const{data,error}=await sb.functions.invoke('create-employee-login',{body:{employee_id:id,password:pw}});
+  if(error||data?.error)return toast(data?.error||error.message,0);
+  alert('تم! اسم الدخول للموظف:\n'+data.username+'\nوالباسورد اللي كتبته.');
+  loadEmps();
 }
 async function addEmp(){
   const a={p_company_id:M.company_id,p_employee_code:v('ec'),p_full_name:v('en'),p_base_salary:+v('es')||0,p_role:v('er')};
-  if(v('eu'))a.p_user_id=v('eu');
   const r=await rpc('add_employee',a);
-  if(r){toast('تمت إضافة الموظف');['ec','en','es','eu'].forEach(i=>$(i).value='');loadEmps()}
+  if(r){toast('تمت إضافة الموظف، اعمل له حساب دخول من كارت الموظفين');['ec','en','es'].forEach(i=>$(i).value='');loadEmps()}
 }
 async function loadAdv(){
   const{data,error}=await sb.from('advances').select('id,amount,reason,employees(full_name)').eq('company_id',M.company_id).eq('status','pending').order('requested_at');
