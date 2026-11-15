@@ -44,12 +44,13 @@ async function init(){
 
 function loginView(){
   $('app').innerHTML=`<div class="c"><h2>تسجيل الدخول</h2>
-  <input id="em" type="email" placeholder="الإيميل" autocomplete="username">
+  <input id="em" type="text" autocapitalize="none" placeholder="الإيميل (أو كود الموظف)" autocomplete="username">
   <input id="pw" type="password" placeholder="الباسورد" autocomplete="current-password">
   <button onclick="login()">دخول</button></div>`;
 }
 async function login(){
-  const{error}=await sb.auth.signInWithPassword({email:v('em'),password:$('pw').value});
+  let em=v('em').toLowerCase();if(!em.includes('@'))em+='@emp.local';
+  const{error}=await sb.auth.signInWithPassword({email:em,password:$('pw').value});
   if(error)return toast('بيانات الدخول غير صحيحة',0);
   home();
 }
@@ -79,9 +80,13 @@ function adminView(){
   <div class="c"><div class="row" style="border:0"><h2 style="margin:0">${esc(M.companies?.name)}</h2>
   <button class="s" onclick="out()">خروج</button></div><span class="mut">الدور: ${esc(M.role)}</span></div>
 
-  <div class="c"><h3>فتح وردية (كود الحضور)</h3>
+  <div class="c"><h3>الورديات المفتوحة (كود الحضور)</h3><div id="shl" class="mut"></div>
+  <div id="otp" class="otp"></div><div id="osm" class="mut" style="text-align:center"></div>
+  <h3 style="margin-top:14px">فتح وردية جديدة</h3>
   <input id="sn" placeholder="اسم الوردية (صباحية)"><input id="sm" type="number" value="60" placeholder="المدة بالدقايق">
-  <button onclick="openShift()">فتح وردية وتوليد الكود</button><div id="otp" class="otp"></div><div id="osm" class="mut" style="text-align:center"></div></div>
+  <button onclick="openShift()">فتح وردية جديدة</button></div>
+
+  <div class="c"><h3>الموظفين</h3><div id="emps"></div></div>
 
   <div class="c"><h3>إضافة موظف</h3>
   <input id="ec" placeholder="كود الموظف (EMP01)"><input id="en" placeholder="الاسم بالكامل">
@@ -96,19 +101,42 @@ function adminView(){
   <button onclick="genPay()">توليد المسير (مسودة)</button><button onclick="apvPay()">اعتماد المسير</button>
   <div id="pay"></div></div>`;
   $('pm').value=new Date().toISOString().slice(0,7);
-  loadAdv();loadPay();
+  loadShifts();loadEmps();loadAdv();loadPay();
+}
+let NOPEN=0;
+async function loadShifts(){
+  const{data,error}=await sb.from('shifts').select('id,shift_name,expires_at').eq('company_id',M.company_id).gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false});
+  if(error)return toast(error.message,0);
+  NOPEN=data.length;
+  $('shl').innerHTML=data.length?data.map(s=>`<div class="row"><div>${esc(s.shift_name)}<div class="mut">ينتهي ${new Date(s.expires_at).toLocaleTimeString('ar-EG')}</div></div><button class="s" onclick="showCode('${s.id}')">إظهار كود جديد</button></div>`).join(''):'لا توجد وردية مفتوحة';
+}
+async function showCode(id){
+  const r=await rpc('rotate_shift_otp',{p_shift_id:id,p_extend_minutes:0});
+  if(r){$('otp').textContent=r.d;$('osm').textContent='كود جديد (القديم اتلغى)'}
 }
 async function openShift(){
+  if(NOPEN&&!confirm('فيه وردية مفتوحة بالفعل. تفتح وردية جديدة؟'))return;
   const r=await rpc('open_shift',{p_company_id:M.company_id,p_shift_name:v('sn')||'وردية',p_minutes:+v('sm')||60});
   if(!r)return;const s=r.d[0];
   $('otp').textContent=s.otp;
   $('osm').textContent='ينتهي: '+new Date(s.expires_at).toLocaleTimeString('ar-EG');
+  loadShifts();
+}
+async function loadEmps(){
+  const{data,error}=await sb.from('employees').select('id,employee_code,full_name,user_id').eq('company_id',M.company_id).order('created_at');
+  if(error)return toast(error.message,0);
+  $('emps').innerHTML=data.length?data.map(e=>`<div class="row" style="flex-wrap:wrap"><div><b>${esc(e.full_name)}</b> <span class="mut">(${esc(e.employee_code)})</span></div>${e.user_id?'<span class="mut">✅ مربوط بحساب</span>':`<div style="width:100%"><input id="u${e.id}" placeholder="الصق User ID هنا"><button class="s" style="margin:4px 0" onclick="linkEmp('${e.id}')">ربط الحساب</button></div>`}</div>`).join(''):'<span class="mut">لا يوجد موظفين بعد</span>';
+}
+async function linkEmp(id){
+  const u=$('u'+id).value.trim();
+  if(!u)return toast('الصق الـ User ID أولاً',0);
+  if(await rpc('link_employee_user',{p_employee_id:id,p_user_id:u,p_role:'employee'})){toast('تم الربط');loadEmps()}
 }
 async function addEmp(){
   const a={p_company_id:M.company_id,p_employee_code:v('ec'),p_full_name:v('en'),p_base_salary:+v('es')||0,p_role:v('er')};
   if(v('eu'))a.p_user_id=v('eu');
   const r=await rpc('add_employee',a);
-  if(r){toast('تمت إضافة الموظف');['ec','en','es','eu'].forEach(i=>$(i).value='')}
+  if(r){toast('تمت إضافة الموظف');['ec','en','es','eu'].forEach(i=>$(i).value='');loadEmps()}
 }
 async function loadAdv(){
   const{data,error}=await sb.from('advances').select('id,amount,reason,employees(full_name)').eq('company_id',M.company_id).eq('status','pending').order('requested_at');
