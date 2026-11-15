@@ -4,26 +4,46 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>إدارة الموظفين</title>
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#111827">
+<link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon.svg">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <style>
-:root{--bg:#f4f6f8;--card:#fff;--tx:#1b2430;--mut:#6b7785;--pr:#0f766e;--bd:#dde3ea}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1419;--card:#1a2129;--tx:#e8edf2;--mut:#93a0ad;--pr:#2dd4bf;--bd:#2b3540}}
+:root{--bg:#f1f5f9;--card:#fff;--tx:#0f172a;--mut:#64748b;--pr:#0f766e;--ind:#4f46e5;--nav:#111827;--bd:#e2e8f0;--in:#f8fafc}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1220;--card:#162033;--tx:#e5eaf2;--mut:#94a3b8;--bd:#25324a;--in:#0f1a2c}}
 *{box-sizing:border-box}
-body{margin:0;font-family:system-ui,Tahoma,sans-serif;background:var(--bg);color:var(--tx);padding:12px;max-width:560px;margin:auto}
-.c{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
-h2{margin:0 0 10px;font-size:17px}h3{margin:0 0 8px;font-size:15px}
-input,select{width:100%;padding:11px;margin:4px 0;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font-size:15px}
-button{background:var(--pr);color:#fff;border:0;border-radius:8px;padding:11px 14px;font-size:15px;margin-top:6px;width:100%}
-button.s{background:var(--bd);color:var(--tx);width:auto;padding:6px 10px;margin:0 4px 0 0}
-.row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd);gap:8px}
-.otp{font-size:38px;letter-spacing:8px;text-align:center;font-weight:700;color:var(--pr);direction:ltr}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,Tahoma,sans-serif}
+.w{max-width:560px;margin:auto;min-height:100vh}
+.hd{background:var(--nav);color:#fff;padding:20px 16px 24px;border-radius:0 0 28px 28px;display:flex;justify-content:space-between;align-items:center}
+.hd small{color:#94a3b8;display:block;font-size:13px}.hd b{font-size:22px}
+.tabs{display:flex;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--bd)}
+.tabs button{flex:0 0 auto;background:none;color:var(--mut);border:0;border-bottom:3px solid transparent;border-radius:0;padding:14px 16px;margin:0;width:auto;font-size:15px;font-weight:600}
+.tabs button.on{color:var(--pr);border-color:var(--pr)}
+.pg{padding:14px}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px;margin-bottom:12px}
+h2{margin:0 0 8px;font-size:18px}
+input,select{width:100%;padding:13px;margin:5px 0;border:1px solid var(--bd);border-radius:12px;background:var(--in);color:var(--tx);font-size:16px}
+button{background:var(--pr);color:#fff;border:0;border-radius:12px;padding:13px;width:100%;font-size:16px;font-weight:700;margin-top:8px}
+button.ind{background:var(--ind)}button.dark{background:var(--nav)}
+button.s{background:var(--bd);color:var(--tx);width:auto;padding:8px 12px;margin:0 4px 0 0;font-size:14px}
+button.x{background:#25324a;color:#fff;width:auto;padding:9px 16px;margin:0;font-size:14px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 0;border-bottom:1px solid var(--bd)}
+.row:last-child{border:0}
+.av{width:42px;height:42px;border-radius:50%;background:var(--bd);display:flex;align-items:center;justify-content:center;font-weight:700;flex:0 0 auto}
 .mut{color:var(--mut);font-size:13px}
-#t{position:fixed;bottom:16px;left:12px;right:12px;padding:12px;border-radius:10px;color:#fff;display:none;z-index:9;text-align:center}
+.stat{background:linear-gradient(135deg,#0f9d8a,#0a7a5f);color:#fff;border-radius:18px;padding:20px;margin-bottom:12px}
+.stat small{opacity:.85}.stat b{display:block;font-size:42px}
+.g{display:grid;grid-template-columns:1fr 1fr;gap:12px}.num{font-size:30px;font-weight:700}
+.otp{font-size:44px;letter-spacing:8px;text-align:center;font-weight:800;color:var(--ind);direction:ltr;margin:6px 0}
+.otpc{border:2px solid var(--ind);text-align:center}
+.bd{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--bd)}
+.hid{display:none}
+#t{position:fixed;bottom:18px;left:12px;right:12px;padding:13px;border-radius:12px;color:#fff;display:none;z-index:9;text-align:center;font-weight:600}
 #t.ok{background:#15803d}#t.bad{background:#b91c1c}
+.sel{width:auto;padding:6px;margin:0;font-size:13px}
 </style>
 </head>
 <body>
-<div id="app"></div>
+<div class="w" id="app"></div>
 <div id="t"></div>
 <script>
 const U='https://fpbyjzaebowcwzggzmku.supabase.co';
@@ -32,21 +52,22 @@ const sb=supabase.createClient(U,K);
 const $=id=>document.getElementById(id);
 const v=id=>$(id).value.trim();
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const toast=(t,ok=1)=>{const e=$('t');e.textContent=t;e.className=ok?'ok':'bad';e.style.display='block';setTimeout(()=>e.style.display='none',4500)};
+const tm=d=>d?new Date(d).toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}):'—';
+const today0=()=>{const d=new Date();d.setHours(0,0,0,0);return d.toISOString()};
+const ST={present:'حاضر',late:'متأخر',excused:'بعذر',absent:'غائب'};
+function toast(t,ok=1){const e=$('t');e.textContent=t;e.className=ok?'ok':'bad';e.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>e.style.display='none',4500)}
 async function rpc(n,a){const r=await sb.rpc(n,a);if(r.error){toast(r.error.message,0);return null}return{d:r.data}}
 const out=async()=>{await sb.auth.signOut();location.reload()};
 let M=null;
 
-async function init(){
-  const{data:{session}}=await sb.auth.getSession();
-  session?home():loginView();
-}
+async function init(){const{data:{session}}=await sb.auth.getSession();session?home():loginView()}
 
 function loginView(){
-  $('app').innerHTML=`<div class="c"><h2>تسجيل الدخول</h2>
-  <input id="em" type="text" autocapitalize="none" placeholder="الإيميل (أو كود الموظف)" autocomplete="username">
+  $('app').innerHTML=`<div class="pg" style="padding-top:60px"><div class="c" style="padding:24px;text-align:center">
+  <div style="font-size:54px">🏢</div><h2>إدارة الموظفين</h2><div class="mut" style="margin-bottom:14px">سجّل دخولك لإدارة الشركة أو تسجيل الحضور</div>
+  <input id="em" type="text" autocapitalize="none" placeholder="الإيميل أو اسم الدخول" autocomplete="username">
   <input id="pw" type="password" placeholder="الباسورد" autocomplete="current-password">
-  <button onclick="login()">دخول</button></div>`;
+  <button onclick="login()">تسجيل الدخول</button></div></div>`;
 }
 async function login(){
   let em=v('em').toLowerCase();if(!em.includes('@'))em+='@emp.local';
@@ -62,70 +83,87 @@ async function home(){
   M=data[0];
   ['owner','admin'].includes(M.role)?adminView():empView();
 }
-
 function createView(){
-  $('app').innerHTML=`<div class="c"><h2>إنشاء شركة جديدة</h2>
-  <input id="n" placeholder="اسم الشركة/المحل"><input id="a" placeholder="النشاط (سوبر ماركت، مصنع...)">
-  <input id="p" placeholder="التليفون"><button onclick="mkCompany()">إنشاء</button>
-  <button class="s" onclick="out()" style="margin-top:10px">خروج</button></div>`;
+  $('app').innerHTML=`<div class="pg" style="padding-top:40px"><div class="c"><h2>حسابك مش مربوط بشركة</h2>
+  <p class="mut">لو إنت موظف، اطلب من المدير يعمل لك حساب دخول. لو إنت صاحب الشركة، أنشئ شركتك:</p>
+  <button class="ind" onclick="$('cf').classList.remove('hid')">أنا المالك، إنشاء شركة</button>
+  <div id="cf" class="hid"><input id="n" placeholder="اسم الشركة/المحل"><input id="a" placeholder="النشاط (مصنع، سوبر ماركت...)">
+  <input id="p" placeholder="التليفون"><button onclick="mkCompany()">حفظ</button></div>
+  <button class="s" style="margin-top:14px" onclick="out()">خروج</button></div></div>`;
 }
 async function mkCompany(){
-  const r=await rpc('create_company',{p_name:v('n'),p_activity_type:v('a'),p_phone:v('p')});
-  if(r)home();
+  if(await rpc('create_company',{p_name:v('n'),p_activity_type:v('a'),p_phone:v('p')}))home();
 }
 
-/* ============ المالك / المدير ============ */
+/* ================= الإدارة ================= */
+const TABS=[['home','الرئيسية'],['emps','الموظفين'],['shifts','الورديات'],['att','الحضور'],['cash','الخزنة'],['adv','السلف'],['pay','الرواتب']];
 function adminView(){
-  $('app').innerHTML=`
-  <div class="c"><div class="row" style="border:0"><h2 style="margin:0">${esc(M.companies?.name)}</h2>
-  <button class="s" onclick="out()">خروج</button></div><span class="mut">الدور: ${esc(M.role)}</span></div>
-
-  <div class="c"><h3>الورديات المفتوحة (كود الحضور)</h3><div id="shl" class="mut"></div>
-  <div id="otp" class="otp"></div><div id="osm" class="mut" style="text-align:center"></div>
-  <h3 style="margin-top:14px">فتح وردية جديدة</h3>
-  <input id="sn" placeholder="اسم الوردية (صباحية)"><input id="sm" type="number" value="60" placeholder="المدة بالدقايق">
-  <button onclick="openShift()">فتح وردية جديدة</button></div>
-
-  <div class="c"><h3>الموظفين</h3><div id="emps"></div></div>
-
-  <div class="c"><h3>إضافة موظف</h3>
-  <input id="ec" placeholder="كود الموظف (EMP01)"><input id="en" placeholder="الاسم بالكامل">
-  <input id="es" type="number" placeholder="المرتب الأساسي">
-  <select id="er"><option value="employee">موظف</option><option value="cashier">كاشير</option><option value="supervisor">مشرف</option></select>
-  <button onclick="addEmp()">إضافة</button></div>
-
-  <div class="c"><h3>السلف المعلقة</h3><div id="adv"></div></div>
-
-  <div class="c"><h3>الرواتب</h3>
-  <input id="pm" type="month"><input id="pd" type="number" value="26" placeholder="أيام العمل في الشهر">
-  <button onclick="genPay()">توليد المسير (مسودة)</button><button onclick="apvPay()">اعتماد المسير</button>
-  <div id="pay"></div></div>`;
-  $('pm').value=new Date().toISOString().slice(0,7);
-  loadShifts();loadEmps();loadAdv();loadPay();
+  $('app').innerHTML=`<div class="hd"><div><small>لوحة إدارة</small><b>${esc(M.companies?.name)}</b></div><button class="x" onclick="out()">خروج</button></div>
+  <div class="tabs">${TABS.map(t=>`<button id="t-${t[0]}" onclick="tab('${t[0]}')">${t[1]}</button>`).join('')}</div><div class="pg" id="pg"></div>`;
+  tab('home');
 }
-let NOPEN=0;
-async function loadShifts(){
-  const{data,error}=await sb.from('shifts').select('id,shift_name,expires_at').eq('company_id',M.company_id).gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false});
-  if(error)return toast(error.message,0);
-  NOPEN=data.length;
-  $('shl').innerHTML=data.length?data.map(s=>`<div class="row"><div>${esc(s.shift_name)}<div class="mut">ينتهي ${new Date(s.expires_at).toLocaleTimeString('ar-EG')}</div></div><button class="s" onclick="showCode('${s.id}')">إظهار كود جديد</button></div>`).join(''):'لا توجد وردية مفتوحة';
+function tab(n){
+  TABS.forEach(t=>$('t-'+t[0]).classList.toggle('on',t[0]==n));
+  ({home:tHome,emps:tEmps,shifts:tShifts,att:tAtt,cash:tCash,adv:tAdv,pay:tPay})[n]();
 }
-async function showCode(id){
-  const r=await rpc('rotate_shift_otp',{p_shift_id:id,p_extend_minutes:0});
-  if(r){$('otp').textContent=r.d;$('osm').textContent='كود جديد (القديم اتلغى)'}
+
+async function tHome(){
+  $('pg').innerHTML='<div class="mut">جاري التحميل...</div>';
+  const q=t=>sb.from(t).select('id',{count:'exact',head:true}).eq('company_id',M.company_id);
+  const[a,b,c]=await Promise.all([q('employees').eq('is_active',true),q('attendance').gte('check_in_time',today0()),q('advances').eq('status','pending')]);
+  $('pg').innerHTML=`<div class="stat"><small>إجمالي الموظفين</small><b>${a.count??0}</b></div>
+  <div class="g"><div class="c"><div class="mut">سجلات حضور اليوم</div><div class="num">${b.count??0}</div></div>
+  <div class="c"><div class="mut">سلف معلقة</div><div class="num">${c.count??0}</div></div></div>
+  <button class="ind" style="margin:0 0 12px" onclick="dayReport()">📲 تقرير اليوم عبر واتساب</button>
+  <div class="c"><div class="mut">ابدأ: أضف موظفيك من تاب "الموظفين"، وبعدها افتح وردية من تاب "الورديات" وادّي الكود للموظفين.</div></div>`;
 }
-async function openShift(){
-  if(NOPEN&&!confirm('فيه وردية مفتوحة بالفعل. تفتح وردية جديدة؟'))return;
-  const r=await rpc('open_shift',{p_company_id:M.company_id,p_shift_name:v('sn')||'وردية',p_minutes:+v('sm')||60});
-  if(!r)return;const s=r.d[0];
-  $('otp').textContent=s.otp;
-  $('osm').textContent='ينتهي: '+new Date(s.expires_at).toLocaleTimeString('ar-EG');
-  loadShifts();
+
+const phoneEG=p=>{p=String(p||'').replace(/\D/g,'');if(p.startsWith('00'))p=p.slice(2);else if(p.startsWith('0'))p='20'+p.slice(1);return p};
+const wa=(ph,msg)=>window.open('https://wa.me/'+(ph?phoneEG(ph):'')+'?text='+encodeURIComponent(msg),'_blank');
+async function dayReport(){
+  const q=t=>sb.from(t).select('id',{count:'exact',head:true}).eq('company_id',M.company_id);
+  const[e,a,ad,c]=await Promise.all([
+    sb.from('employees').select('id,full_name').eq('company_id',M.company_id).eq('is_active',true),
+    sb.from('attendance').select('employee_id').eq('company_id',M.company_id).gte('check_in_time',today0()),
+    q('advances').eq('status','pending'),
+    sb.from('cash_reconciliations').select('discrepancy,employees(full_name)').eq('company_id',M.company_id).gte('created_at',today0())]);
+  const ids=new Set((a.data||[]).map(x=>x.employee_id)),all=e.data||[];
+  const absent=all.filter(x=>!ids.has(x.id)).map(x=>x.full_name);
+  const sh=(c.data||[]).filter(x=>x.discrepancy<0);
+  let m=`📋 تقرير ${M.companies?.name}\n${new Date().toLocaleDateString('ar-EG')}\n\n✅ حاضر: ${ids.size} من ${all.length}\n`;
+  m+=!ids.size?'⏳ لسه محدش سجل حضور النهارده\n':absent.length?`❌ غايب: ${absent.join('، ')}\n`:'✅ مفيش غياب\n';
+  m+=`💰 سلف مستنية موافقتك: ${ad.count||0}\n`;
+  if(sh.length)m+=`⚠️ عجز خزنة: ${sh.map(x=>x.employees?.full_name+' ('+(-x.discrepancy)+' ج)').join('، ')}\n`;
+  wa('',m);
+}
+function payWa(i){
+  const p=PAYS[i],e=p.employees||{};
+  if(!e.phone)return toast('مفيش رقم واتساب للموظف ده. ضيفه من تاب الموظفين',0);
+  wa(e.phone,`مرحباً ${e.full_name} 👋\nمسير راتب ${p.month_year.slice(0,7)} - ${M.companies?.name}\n\nالأساسي: ${p.base_salary} ج\nخصم غياب/عجز: ${p.deductions} ج\nسلف: ${p.advances_deducted} ج\nمكافآت: ${p.bonuses} ج\n━━━━━━━━\nالصافي: ${p.net_salary} ج`);
+}
+async function setPhone(id){
+  const e=EMPS.find(x=>x.id==id),p=prompt('رقم الواتساب (مثال 01012345678):');
+  if(!p)return;
+  if(await rpc('update_employee',{p_employee_id:id,p_full_name:e.full_name,p_phone:p,p_base_salary:e.base_salary,p_is_active:e.is_active})){toast('تم حفظ الرقم');loadEmps()}
+}
+async function tEmps(){
+  $('pg').innerHTML=`<button class="dark" style="margin:0 0 12px" onclick="$('ef').classList.toggle('hid')">+ إضافة موظف جديد</button>
+  <div id="ef" class="c hid"><input id="ec" placeholder="كود الموظف (أرقام أو إنجليزي: 22 أو emp1)"><input id="en" placeholder="الاسم بالكامل">
+  <input id="es" type="number" placeholder="المرتب الأساسي"><input id="ep" type="tel" placeholder="رقم الواتساب (اختياري)"><select id="er"><option value="employee">موظف</option><option value="cashier">كاشير</option><option value="supervisor">مشرف</option></select>
+  <button onclick="addEmp()">حفظ الموظف</button></div><div id="el" class="c"></div>`;
+  loadEmps();
+}
+async function addEmp(){
+  const r=await rpc('add_employee',{p_company_id:M.company_id,p_employee_code:v('ec'),p_full_name:v('en'),p_base_salary:+v('es')||0,p_phone:v('ep')||null,p_role:v('er')});
+  if(r){toast('تمت الإضافة. اعمل له حساب دخول من القائمة');['ec','en','es','ep'].forEach(i=>$(i).value='');$('ef').classList.add('hid');loadEmps()}
 }
 async function loadEmps(){
-  const{data,error}=await sb.from('employees').select('id,employee_code,full_name,user_id').eq('company_id',M.company_id).order('created_at');
+  const{data,error}=await sb.from('employees').select('id,employee_code,full_name,base_salary,user_id,phone,is_active').eq('company_id',M.company_id).order('created_at');
   if(error)return toast(error.message,0);
-  $('emps').innerHTML=data.length?data.map(e=>`<div class="row" style="flex-wrap:wrap"><div><b>${esc(e.full_name)}</b> <span class="mut">(${esc(e.employee_code)})</span></div>${e.user_id?`<span class="mut">اسم الدخول: <b dir="ltr">${esc((e.employee_code+'-'+M.company_id.slice(0,6)).toLowerCase())}</b></span>`:`<div style="width:100%"><input id="u${e.id}" placeholder="اكتب باسورد للموظف (6 حروف أو أكتر)"><button class="s" style="margin:4px 0" onclick="mkLogin('${e.id}')">إنشاء حساب دخول</button></div>`}</div>`).join(''):'<span class="mut">لا يوجد موظفين بعد</span>';
+  window.EMPS=data;$('el').innerHTML=data.length?data.map(e=>`<div class="row" style="flex-wrap:wrap"><div style="display:flex;gap:10px;align-items:center"><div class="av">${esc(e.full_name[0])}</div>
+  <div><b>${esc(e.full_name)}</b><div class="mut">كود: ${esc(e.employee_code)} | راتب: ${e.base_salary} | ${e.phone?'📱 '+esc(e.phone):`<a href="#" onclick="setPhone('${e.id}');return false">+ رقم واتساب</a>`}</div></div></div>
+  ${e.user_id?`<span class="mut">اسم الدخول: <b dir="ltr">${esc((e.employee_code+'-'+M.company_id.slice(0,6)).toLowerCase())}</b></span>`
+  :`<div style="width:100%"><input id="u${e.id}" placeholder="اكتب باسورد للموظف (6 أو أكتر)"><button class="s" style="margin:4px 0" onclick="mkLogin('${e.id}')">إنشاء حساب دخول</button></div>`}</div>`).join(''):'<span class="mut">لا يوجد موظفين بعد</span>';
 }
 async function mkLogin(id){
   const pw=$('u'+id).value;
@@ -135,58 +173,112 @@ async function mkLogin(id){
   alert('تم! اسم الدخول للموظف:\n'+data.username+'\nوالباسورد اللي كتبته.');
   loadEmps();
 }
-async function addEmp(){
-  const a={p_company_id:M.company_id,p_employee_code:v('ec'),p_full_name:v('en'),p_base_salary:+v('es')||0,p_role:v('er')};
-  const r=await rpc('add_employee',a);
-  if(r){toast('تمت إضافة الموظف، اعمل له حساب دخول من كارت الموظفين');['ec','en','es'].forEach(i=>$(i).value='');loadEmps()}
+
+function tShifts(){
+  $('pg').innerHTML=`<div class="c"><input id="sn" placeholder="اسم الوردية (صباحية)"><input id="sm" type="number" value="60" placeholder="المدة بالدقايق">
+  <button class="ind" onclick="openShift()">⚡ توليد وردية جديدة (OTP)</button></div><div id="ob"></div><div class="c" id="shl"></div>`;
+  loadShifts();
 }
-async function loadAdv(){
+function showOtp(c,n){$('ob').innerHTML=`<div class="c otpc"><div class="mut">كود الوردية الحالي (OTP):</div><div class="otp">${esc(c)}</div><div class="mut">${n}</div></div>`}
+let NOPEN=0;
+async function openShift(){
+  if(NOPEN&&!confirm('فيه وردية مفتوحة بالفعل. تفتح وردية جديدة؟'))return;
+  const r=await rpc('open_shift',{p_company_id:M.company_id,p_shift_name:v('sn')||'وردية',p_minutes:+v('sm')||60});
+  if(!r)return;const s=r.d[0];
+  showOtp(s.otp,'ينتهي: '+tm(s.expires_at)+' - اكتب الكود للموظفين');loadShifts();
+}
+async function showCode(id){
+  const r=await rpc('rotate_shift_otp',{p_shift_id:id,p_extend_minutes:0});
+  if(r)showOtp(r.d,'كود جديد (القديم اتلغى)');
+}
+async function loadShifts(){
+  const{data,error}=await sb.from('shifts').select('id,shift_name,expires_at,created_at').eq('company_id',M.company_id).order('created_at',{ascending:false}).limit(12);
+  if(error)return toast(error.message,0);
+  const now=Date.now();NOPEN=data.filter(s=>new Date(s.expires_at)>now).length;
+  $('shl').innerHTML=data.length?data.map(s=>{const open=new Date(s.expires_at)>now;
+  return`<div class="row"><div><b>${esc(s.shift_name)}</b> <span class="bd">${open?'مفتوحة':'منتهية'}</span><div class="mut">بدأت ${tm(s.created_at)} | تنتهي ${tm(s.expires_at)}</div></div>
+  ${open?`<button class="s" onclick="showCode('${s.id}')">إظهار كود</button>`:''}</div>`}).join(''):'<span class="mut">لا توجد ورديات</span>';
+}
+
+async function tAtt(){
+  $('pg').innerHTML='<div class="c" id="al"><span class="mut">جاري التحميل...</span></div>';
+  const{data,error}=await sb.from('attendance').select('id,check_in_time,check_out_time,status,employees(full_name)').eq('company_id',M.company_id).gte('check_in_time',today0()).order('check_in_time',{ascending:false});
+  if(error)return toast(error.message,0);
+  $('al').innerHTML=data.length?data.map(a=>`<div class="row"><div><b>${esc(a.employees?.full_name)}</b><div class="mut">حضور ${tm(a.check_in_time)} | انصراف ${tm(a.check_out_time)}</div></div>
+  <select class="sel" onchange="setSt('${a.id}',this.value)">${Object.entries(ST).map(([k,l])=>`<option value="${k}"${k==a.status?' selected':''}>${l}</option>`).join('')}</select></div>`).join(''):'<span class="mut">لا يوجد حضور اليوم</span>';
+}
+async function setSt(id,s){if(await rpc('set_attendance_status',{p_attendance_id:id,p_status:s}))toast('تم التعديل')}
+
+async function tCash(){
+  $('pg').innerHTML='<div class="c" id="cl"><span class="mut">جاري التحميل...</span></div>';
+  const{data,error}=await sb.from('cash_reconciliations').select('id,expected_amount,counted_amount,discrepancy,deduction_amount,deduct_month,created_at,employees(full_name)').eq('company_id',M.company_id).order('created_at',{ascending:false}).limit(30);
+  if(error)return toast(error.message,0);
+  $('cl').innerHTML=data.length?data.map(r=>{const d=+r.discrepancy;
+    const tag=d<0?`<b style="color:#dc2626">عجز ${-d} ج</b>`:d>0?`<b style="color:#15803d">زيادة ${d} ج</b>`:'<b style="color:#15803d">مظبوط ✅</b>';
+    const act=d<0?(r.deduct_month?`<span class="bd">خصم ${r.deduction_amount} ج من ${r.deduct_month.slice(0,7)}</span>`:`<button class="s" onclick="cashDeduct('${r.id}',${-d})">خصم من المسير</button>`):'';
+    return`<div class="row"><div><b>${esc(r.employees?.full_name)}</b><div class="mut">${new Date(r.created_at).toLocaleString('ar-EG')}<br>المفروض ${r.expected_amount} | الفعلي ${r.counted_amount}</div></div><div style="text-align:left">${tag}<div style="margin-top:6px">${act}</div></div></div>`}).join(''):'<span class="mut">لا توجد تقفيلات خزنة بعد</span>';
+}
+async function cashDeduct(id,max){
+  const a=prompt('مبلغ الخصم من مسير الشهر ده (أقصى '+max+' ج، اكتب 0 للتسامح):',max);
+  if(a===null)return;
+  if(await rpc('decide_cash_deduction',{p_id:id,p_amount:+a,p_month:new Date().toISOString().slice(0,7)+'-01'})){toast('اتسجل. هيتخصم لما تولّد المسير');tCash()}
+}
+async function tAdv(){
+  $('pg').innerHTML='<div class="c" id="adv"><span class="mut">جاري التحميل...</span></div>';
   const{data,error}=await sb.from('advances').select('id,amount,reason,employees(full_name)').eq('company_id',M.company_id).eq('status','pending').order('requested_at');
   if(error)return toast(error.message,0);
   $('adv').innerHTML=data.length?data.map(a=>`<div class="row"><div><b>${esc(a.employees?.full_name)}</b> - ${a.amount} ج<div class="mut">${esc(a.reason)}</div></div>
-  <div><button class="s" onclick="decide('${a.id}',true)">قبول</button><button class="s" onclick="decide('${a.id}',false)">رفض</button></div></div>`).join(''):'<span class="mut">لا يوجد</span>';
+  <div><button class="s" onclick="decide('${a.id}',true)">قبول</button><button class="s" onclick="decide('${a.id}',false)">رفض</button></div></div>`).join(''):'<span class="mut">لا توجد سلف معلقة</span>';
 }
-async function decide(id,ok){if(await rpc('decide_advance',{p_advance_id:id,p_approve:ok}))loadAdv()}
+async function decide(id,ok){if(await rpc('decide_advance',{p_advance_id:id,p_approve:ok}))tAdv()}
+
+function tPay(){
+  $('pg').innerHTML=`<div class="c"><input id="pm" type="month"><input id="pd" type="number" value="26" placeholder="أيام العمل في الشهر">
+  <button onclick="genPay()">توليد المسير (مسودة)</button><button class="dark" onclick="apvPay()">اعتماد المسير</button></div><div class="c" id="pay"></div>`;
+  $('pm').value=new Date().toISOString().slice(0,7);loadPay();
+}
 async function genPay(){
   const r=await rpc('generate_payroll',{p_company_id:M.company_id,p_month:v('pm')+'-01',p_working_days:+v('pd')||26});
   if(r){toast('تم توليد '+r.d+' مسير');loadPay()}
 }
 async function apvPay(){
+  if(!confirm('اعتماد المسير بيقفل الأرقام. متأكد؟'))return;
   const r=await rpc('approve_payroll',{p_company_id:M.company_id,p_month:v('pm')+'-01'});
   if(r){toast('تم اعتماد '+r.d+' مسير');loadPay()}
 }
 async function loadPay(){
-  const{data,error}=await sb.from('payrolls').select('base_salary,deductions,advances_deducted,bonuses,net_salary,status,month_year,employees(full_name)').eq('company_id',M.company_id).order('month_year',{ascending:false}).limit(30);
+  const{data,error}=await sb.from('payrolls').select('net_salary,base_salary,deductions,advances_deducted,bonuses,status,month_year,employees(full_name,phone)').eq('company_id',M.company_id).order('month_year',{ascending:false}).limit(40);
   if(error)return;
-  $('pay').innerHTML=data.map(p=>`<div class="row"><div>${esc(p.employees?.full_name)}<div class="mut">${p.month_year.slice(0,7)} | ${p.status}</div></div><b>${p.net_salary}</b></div>`).join('');
+  const L={draft:'مسودة',approved:'معتمد',paid:'مصروف'};
+  $('pay').innerHTML=data.length?(window.PAYS=data).map((p,i)=>`<div class="row"><div>${esc(p.employees?.full_name)}<div class="mut">${p.month_year.slice(0,7)} | ${L[p.status]}</div></div><div style="text-align:left"><b>${p.net_salary} ج</b><div style="margin-top:6px"><button class="s" onclick="payWa(${i})">📲 واتساب</button></div></div></div>`).join(''):'<span class="mut">لا يوجد مسير</span>';
 }
 
-/* ============ الموظف ============ */
+/* ================= الموظف ================= */
 let SH=null;
 async function empView(){
-  $('app').innerHTML=`
-  <div class="c"><div class="row" style="border:0"><h2 style="margin:0">${esc(M.companies?.name)}</h2>
-  <button class="s" onclick="out()">خروج</button></div></div>
-
-  <div class="c"><h3>تسجيل الحضور</h3><div id="sh" class="mut"></div>
-  <input id="ot" inputmode="numeric" maxlength="6" placeholder="كود الوردية (6 أرقام)">
-  <button onclick="checkIn()">تسجيل حضور</button><button class="s" style="width:100%;margin:6px 0 0" onclick="checkOut()">تسجيل انصراف</button></div>
-
-  <div class="c"><h3>طلب سلفة</h3><input id="am" type="number" placeholder="المبلغ"><input id="rs" placeholder="السبب">
-  <button onclick="reqAdv()">إرسال الطلب</button><div id="my"></div></div>
-
-  <div class="c"><h3>مسير راتبي</h3><div id="pay"></div></div>`;
+  $('app').innerHTML=`<div class="hd"><div><small>أهلاً بيك</small><b>${esc(M.companies?.name)}</b></div><button class="x" onclick="out()">خروج</button></div>
+  <div class="pg"><div class="c" style="text-align:center"><div style="font-size:44px">📍</div><h2>تسجيل الحضور</h2><div id="sh" class="mut"></div>
+  <input id="ot" inputmode="numeric" maxlength="6" placeholder="كود الوردية (من المدير)" style="text-align:center;font-size:20px">
+  <button onclick="checkIn()">تسجيل الحضور</button><button class="ind" onclick="checkOut()">تسجيل الانصراف</button>
+  <div id="lo" class="mut" style="margin-top:8px"></div><div id="mon" class="mut" style="margin-top:6px"></div></div>
+  ${['cashier','supervisor'].includes(M.role)?`<div class="c"><h2>تقفيل الخزنة</h2><input id="ce" type="number" placeholder="المبلغ المفروض (من الدفتر/السيستم)"><input id="cc" type="number" placeholder="المبلغ الفعلي اللي عديته">
+  <button class="dark" onclick="closeCash()">تقفيل الخزنة</button><div id="cm"></div></div>`:''}
+  <div class="c"><h2>طلب سلفة</h2><input id="am" type="number" placeholder="المبلغ"><input id="rs" placeholder="السبب">
+  <button class="dark" onclick="reqAdv()">إرسال الطلب</button><div id="my"></div></div>
+  <div class="c"><h2>مسير راتبي</h2><div id="pay"></div></div></div>`;
   const{data}=await sb.from('shifts').select('id,shift_name,expires_at').gt('expires_at',new Date().toISOString()).order('created_at',{ascending:false}).limit(1);
   SH=data?.[0]||null;
   $('sh').textContent=SH?'الوردية المفتوحة: '+SH.shift_name:'لا توجد وردية مفتوحة حالياً';
   loadMy();loadPay2();
+  if(['employee','cashier'].includes(M.role))loadMon();
+  if(M.role!='employee')loadCash();
 }
 async function checkIn(){
   if(!SH)return toast('لا توجد وردية مفتوحة',0);
   const r=await rpc('check_in',{p_shift_id:SH.id,p_otp:v('ot')});
   if(!r)return;
   toast(r.d.message,r.d.ok);
-  if(r.d.ok){$('ot').value='';toast('تم الحضور. هيتقفل حسابك تلقائياً بعد 60 ثانية');setTimeout(out,60000)}
+  if(r.d.ok){$('ot').value='';$('lo').textContent='هيتقفل حسابك تلقائياً بعد 60 ثانية';setTimeout(out,60000)}
 }
 async function checkOut(){
   if(!SH)return toast('لا توجد وردية',0);
@@ -198,14 +290,33 @@ async function reqAdv(){
   if(r){toast('تم إرسال الطلب');$('am').value=$('rs').value='';loadMy()}
 }
 async function loadMy(){
-  const{data}=await sb.from('advances').select('amount,status,requested_at').order('requested_at',{ascending:false}).limit(5);
+  const{data}=await sb.from('advances').select('amount,status').order('requested_at',{ascending:false}).limit(5);
   const t={pending:'قيد المراجعة',approved:'موافق',rejected:'مرفوض',settled:'تم الخصم'};
   $('my').innerHTML=(data||[]).map(a=>`<div class="row"><span>${a.amount} ج</span><span class="mut">${t[a.status]}</span></div>`).join('');
 }
 async function loadPay2(){
-  const{data}=await sb.from('payrolls').select('month_year,net_salary,status').order('month_year',{ascending:false}).limit(6);
+  const{data}=await sb.from('payrolls').select('month_year,net_salary').order('month_year',{ascending:false}).limit(6);
   $('pay').innerHTML=(data||[]).length?data.map(p=>`<div class="row"><span>${p.month_year.slice(0,7)}</span><b>${p.net_salary} ج</b></div>`).join(''):'<span class="mut">لا يوجد مسير معتمد بعد</span>';
 }
+async function closeCash(){
+  if(v('ce')===''||v('cc')==='')return toast('اكتب الرقمين',0);
+  const e=+v('ce'),c=+v('cc');
+  const r=await rpc('submit_cash_reconciliation',{p_company_id:M.company_id,p_expected:e,p_counted:c});
+  if(!r)return;
+  const d=c-e;
+  toast(d<0?'تم التقفيل. فيه عجز '+(-d)+' ج':d>0?'تم التقفيل. زيادة '+d+' ج':'تم التقفيل. الخزنة مظبوطة ✅',d<0?0:1);
+  $('ce').value=$('cc').value='';loadCash();
+}
+async function loadCash(){
+  const{data}=await sb.from('cash_reconciliations').select('discrepancy,created_at').order('created_at',{ascending:false}).limit(3);
+  if($('cm'))$('cm').innerHTML=(data||[]).map(r=>`<div class="row"><span class="mut">${new Date(r.created_at).toLocaleDateString('ar-EG')}</span><b style="color:${r.discrepancy<0?'#dc2626':'#15803d'}">${r.discrepancy<0?'عجز '+(-r.discrepancy):r.discrepancy>0?'زيادة '+r.discrepancy:'مظبوط'}</b></div>`).join('');
+}
+async function loadMon(){
+  const d=new Date();d.setDate(1);d.setHours(0,0,0,0);
+  const{count}=await sb.from('attendance').select('id',{count:'exact',head:true}).gte('check_in_time',d.toISOString());
+  if($('mon'))$('mon').textContent='حضرت الشهر ده: '+(count||0)+' يوم';
+}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 init();
 </script>
 </body>
